@@ -1,32 +1,18 @@
-# ============================================================
-# Stage 1: Build the picoclaw binary
-# ============================================================
-FROM golang:1.26.0-alpine AS builder
+# ... (keep the builder stage at the top as is) ...
 
-RUN apk add --no-cache git make
+FROM python:3-alpine[[1](https://www.google.com/url?sa=E&q=https%3A%2F%2Fvertexaisearch.cloud.google.com%2Fgrounding-api-redirect%2FAUZIYQGOqEZtjBZm_xsNSqoN5aepippPo-WZqP1aQwQyqtN3mQ1l4IFOvPluI_N0h_mmDrw6hfluzcyM9hzoVJlLDDml-yLccENwoan878c_6HEDGiFzDjwHt7atDWR1Jk2C0GiEg4lXX-0%3D)]
 
-WORKDIR /src
+# Install dependencies for the bot
+RUN apk add --no-cache ca-certificates[[1](https://www.google.com/url?sa=E&q=https%3A%2F%2Fvertexaisearch.cloud.google.com%2Fgrounding-api-redirect%2FAUZIYQGOqEZtjBZm_xsNSqoN5aepippPo-WZqP1aQwQyqtN3mQ1l4IFOvPluI_N0h_mmDrw6hfluzcyM9hzoVJlLDDml-yLccENwoan878c_6HEDGiFzDjwHt7atDWR1Jk2C0GiEg4lXX-0%3D)]
 
-# Cache dependencies
-COPY go.mod go.sum ./
-RUN go mod download
+# Copy the binary from the builder stage (assuming the builder stage is named 'builder')
+# Note: You must check the top line of the original Dockerfile. 
+# If it says "FROM golang:1.21 as builder", use --from=builder.
+COPY --from=builder /app/picoclaw /usr/bin/picoclaw[[1](https://www.google.com/url?sa=E&q=https%3A%2F%2Fvertexaisearch.cloud.google.com%2Fgrounding-api-redirect%2FAUZIYQGOqEZtjBZm_xsNSqoN5aepippPo-WZqP1aQwQyqtN3mQ1l4IFOvPluI_N0h_mmDrw6hfluzcyM9hzoVJlLDDml-yLccENwoan878c_6HEDGiFzDjwHt7atDWR1Jk2C0GiEg4lXX-0%3D)]
 
-# Copy source and build
-COPY . .
-RUN make build
+# Copy our start script
+COPY render_start.sh /render_start.sh
+RUN chmod +x /render_start.sh[[1](https://www.google.com/url?sa=E&q=https%3A%2F%2Fvertexaisearch.cloud.google.com%2Fgrounding-api-redirect%2FAUZIYQGOqEZtjBZm_xsNSqoN5aepippPo-WZqP1aQwQyqtN3mQ1l4IFOvPluI_N0h_mmDrw6hfluzcyM9hzoVJlLDDml-yLccENwoan878c_6HEDGiFzDjwHt7atDWR1Jk2C0GiEg4lXX-0%3D)]
 
-# ============================================================
-# Stage 2: Minimal runtime image
-# ============================================================
-FROM alpine:3.23
-
-RUN apk add --no-cache ca-certificates tzdata curl
-
-# Copy binary
-COPY --from=builder /src/build/picoclaw /usr/local/bin/picoclaw
-
-# Create picoclaw home directory
-RUN /usr/local/bin/picoclaw onboard
-
-ENTRYPOINT ["picoclaw"]
-CMD ["gateway"]
+# Set the entrypoint
+CMD ["/render_start.sh"]
